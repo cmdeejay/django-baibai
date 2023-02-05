@@ -1,0 +1,10 @@
+{% extends 'main.html' %}
+
+{% block content %}
+<div>
+    {% for model in models %}
+        <a href="{% url 'model' category_slug mid_category_slug brand_slug model.slug %}">{{model.name}}</a>
+    {% endfor %}
+
+</div>
+{% endblock %}

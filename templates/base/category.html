@@ -1,0 +1,10 @@
+{% extends 'main.html' %}
+ 
+{% block content %}
+<div>
+    {% for mid_category in mid_categories %}
+    <a href="{% url 'mid_category' mid_category.category.slug mid_category.slug %}">{{mid_category.name}}</a>
+    {% endfor %}
+
+</div>
+{% endblock %}
