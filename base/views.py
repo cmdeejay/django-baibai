@@ -1,91 +1,70 @@
 from django.shortcuts import render, redirect
+from django.http import Http404
 from .models import *
 from django.db.models import Count
-
+from rest_framework import generics, viewsets
+from rest_framework.response import Response
+from .serializers import *
+from collections import namedtuple
 # Create your views here.
-def home(request):
-    categories = Categories.objects.all()
-    mid_categories = MidCategories.objects.all().annotate(total=Count('id')).order_by('total')
-    products = Products.objects.all().order_by('created_date')[:4]
-    context = {'categories': categories, 
-               'mid_categories': mid_categories,
-               'products': products,
-    }
-    return render(request, 'home.html', context)
+Home = namedtuple('Home', ('category', 'mid_category', 'product'))
 
-def category(request, category_slug):
-    try:
-        Categories.objects.get(slug=category_slug).slug
-        mid_categories = MidCategories.objects.filter(category__slug__icontains=category_slug)
-        context = {'mid_categories': mid_categories}
-        return render(request, 'category.html', context)
-    except:
-        return redirect('home')
 
-def mid_category(request, category_slug, mid_category_slug):
-    try:
-        matching_mid_category_slug = MidCategories.objects.get(slug=mid_category_slug).slug
-        matching_category_slug = Categories.objects.get(slug=category_slug).slug
-        brands = Brands.objects.filter(mid_category__slug__icontains=mid_category_slug)
-        context = {'brands': brands,
-                'mid_category_slug': matching_mid_category_slug,
-                'category_slug': matching_category_slug
-        }
-        return render(request, 'mid_category.html', context)
-    except:
-        return redirect('home')
-    
-def brand(request, category_slug, mid_category_slug, brand_slug):
-    try: 
-        matching_mid_category_slug = MidCategories.objects.get(slug=mid_category_slug).slug
-        matching_category_slug = Categories.objects.get(slug=category_slug).slug
-        matching_brand_slug = Brands.objects.get(slug=brand_slug).slug
-        models= ModelNumbers.objects.filter(brand__slug__icontains=brand_slug)
-        context = {'models': models,
-                   'mid_category_slug': matching_mid_category_slug,
-                   'category_slug': matching_category_slug,
-                   'brand_slug': matching_brand_slug
-        }
-        return render(request, 'brand.html', context)
-    except:
-        return redirect('home')
+class ProductListView(generics.ListAPIView):
+    serializer_class = ProductListSerilizer
 
-def model(request, category_slug, mid_category_slug, brand_slug, model_slug):
-    try: 
-        matching_mid_category_slug = MidCategories.objects.get(slug=mid_category_slug).slug
-        matching_category_slug = Categories.objects.get(slug=category_slug).slug
-        matching_brand_slug = Brands.objects.get(slug=brand_slug).slug
-        matching_model_slug = ModelNumbers.objects.get(slug=model_slug).slug
-        models= ModelNumbers.objects.filter(brand__slug__icontains=brand_slug)
-        products = Products.objects.filter(model_number__slug__icontains=model_slug)
-        context = {'models': models,
-                   'products': products,
-                   'mid_category_slug': matching_mid_category_slug,
-                   'category_slug': matching_category_slug,
-                   'brand_slug': matching_brand_slug,
-                   'model_slug': matching_model_slug
-        }
-        return render(request, 'model.html', context)
-    except:
-        return redirect('home')
+    def get_queryset(self):
+        if (self.kwargs['brand_slug'] == Products.objects.filter(brand__slug=self.kwargs['brand_slug'])[0].brand.slug) and \
+                (self.kwargs['mid_category_slug'] == Products.objects.filter(brand__slug=self.kwargs['brand_slug'])[0].brand.mid_category.slug) and \
+                (self.kwargs['category_slug'] == Products.objects.filter(brand__slug=self.kwargs['brand_slug'])[0].brand.mid_category.category.slug):
+            return Products.objects.filter(model_number__slug=self.kwargs['model_number_slug'])
 
-def product(request, category_slug, mid_category_slug, brand_slug, model_slug, name):
-    try:
-        matching_mid_category_slug = MidCategories.objects.get(slug=mid_category_slug).slug
-        matching_category_slug = Categories.objects.get(slug=category_slug).slug
-        matching_brand_slug = Brands.objects.get(slug=brand_slug).slug
-        matching_model_slug = ModelNumbers.objects.get(slug=model_slug)
 
-        models= ModelNumbers.objects.filter(brand__slug__icontains=brand_slug)
-        product = Products.objects.get(name=name)
+class HomeListView(viewsets.ViewSet):
 
-        context = {'models': models,
-                   'product': product,
-                   'mid_category_slug': matching_mid_category_slug,
-                   'category_slug': matching_category_slug,
-                   'brand_slug': matching_brand_slug,
-                   'model_slug': matching_model_slug,
-        }
-        return render(request, 'product.html', context)
-    except:
-        return redirect('home')
+    def list(self, request):
+        home = Home(
+            category=Categories.objects.all(),
+            mid_category=MidCategories.objects.all(),
+            product=Products.objects.all()
+        )
+        serializer_class = HomeSerilizer(home)
+        return Response(serializer_class.data)
+
+
+class MidCategoryListView(generics.ListAPIView):
+    serializer_class = MidCategorySerilizer
+
+    def get_queryset(self):
+        if (self.kwargs['category_slug'] == MidCategories.objects.filter(category__slug=self.kwargs['category_slug'])[0].category.slug):
+            return MidCategories.objects.filter(category__slug=self.kwargs['category_slug'])
+
+
+class BrandListView(generics.ListAPIView):
+    serializer_class = BrandSerilizer
+
+    def get_queryset(self):
+        if (self.kwargs['category_slug'] == Brands.objects.filter(mid_category__slug=self.kwargs['mid_category_slug'])[0].mid_category.category.slug) and \
+                (self.kwargs['mid_category_slug'] == Brands.objects.filter(mid_category__slug=self.kwargs['mid_category_slug'])[0].mid_category.slug):
+            return Brands.objects.filter(mid_category__slug=self.kwargs['mid_category_slug'])
+
+
+class ModelNumberListView(generics.ListAPIView):
+    serializer_class = ModelNumberSerilizer
+
+    def get_queryset(self):
+        if (self.kwargs['category_slug'] == ModelNumbers.objects.filter(brand__slug=self.kwargs['brand_slug'])[0].brand.mid_category.category.slug) and \
+            (self.kwargs['mid_category_slug'] == ModelNumbers.objects.filter(brand__slug=self.kwargs['brand_slug'])[0].brand.mid_category.slug) and \
+                (self.kwargs['brand_slug'] == ModelNumbers.objects.filter(brand__slug=self.kwargs['brand_slug'])[0].brand.slug):
+            return ModelNumbers.objects.filter(brand__slug=self.kwargs['brand_slug'])
+
+
+class ProductsView(generics.ListAPIView):
+    serializer_class = ProductSerilizer
+
+    def get_queryset(self):
+        if (self.kwargs['model_number_slug'] == Products.objects.filter(id=self.kwargs['id'])[0].model_number.slug) and \
+            (self.kwargs['brand_slug'] == Products.objects.filter(id=self.kwargs['id'])[0].model_number.brand.slug) and \
+            (self.kwargs['mid_category_slug'] == Products.objects.filter(id=self.kwargs['id'])[0].model_number.brand.mid_category.slug) and \
+                (self.kwargs['category_slug'] == Products.objects.filter(id=self.kwargs['id'])[0].model_number.brand.mid_category.category.slug):
+            return Products.objects.filter(id=self.kwargs['id'])

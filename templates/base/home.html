@@ -1,33 +1,36 @@
-{% extends 'main.html' %}
-
-{% block content %}
+{% extends 'main.html' %} {% block content %}
 <div>
-    {% for category in categories %}
-    <div>
-        <a href="{% url 'category' category.slug %}">{{category.name}}</a>
-        {% for mid_category in mid_categories %}
-            {% if mid_category.category.name == category.name %}
-                <a href="{% url 'mid_category' category.slug mid_category.slug %}">{{mid_category.name}}</a>
-            {% endif %}
-        {% endfor %}
-    </div> 
+  {% for category in categories %}
+  <div>
+    <a href="{% url 'category' category.slug %}">{{category.name}}</a>
+    {% for mid_category in mid_categories %} 
+    {% if mid_category.category.name == category.name %}
+    <a href="{% url 'mid_category' category.slug mid_category.slug %}"
+      >{{mid_category.name}}</a
+    >
+    {% endif %} 
     {% endfor %}
-    <br>
-    <br>
-    <hr>
-    {% for category in categories %}
-        <div>
-            <contianer>
-                <h1>当前·{{category.name}}</h1>
-                {% for product in products %}
-                    {% if product.model_number.brand.mid_category.category.name == category.name %}
-                        <a href="{% url 'product' product.model_number.brand.mid_category.category.slug product.model_number.brand.mid_category.slug product.model_number.brand.slug product.model_number.slug product.name %}">{{product.name}}</a>
-                    {% endif %}
-                {% endfor %}
-                <br>
-                <br>
-            </contianer>
-        </div>
-    {% endfor %}
+  </div>
+  {% endfor %}
+  <br />
+  <br />
+  <hr />
+  {% for category in categories %}
+  <div>
+    <contianer>
+      <h1>当前·{{category.name}}</h1>
+      {% for product in products %} 
+      {% if product.model_number.brand.mid_category.category.name == category.name %}
+      <a
+        href="{% url 'product' product.model_number.brand.mid_category.category.slug product.model_number.brand.mid_category.slug product.model_number.brand.slug product.model_number.slug product.name %}"
+        >{{product.name}}</a
+      >
+      {% endif %}
+      {% endfor %}
+      <br />
+      <br />
+    </contianer>
+  </div>
+  {% endfor %}
 </div>
 {% endblock %}
