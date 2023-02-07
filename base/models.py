@@ -1,6 +1,6 @@
 from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
-
+from django.contrib.auth.models import User
 # Create your models here.
 
 
@@ -66,6 +66,7 @@ class Products(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
     descriptions = models.TextField(null=True, blank=True)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='products')
 
     class Color(models.TextChoices):
         黑色 = '黑色'

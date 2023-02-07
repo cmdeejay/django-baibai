@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'base.apps.BaseConfig',
     'phonenumber_field',
     'rest_framework',
+    'django_rename_app',
 ]
 
 MIDDLEWARE = [
