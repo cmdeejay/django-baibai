@@ -19,6 +19,8 @@ from . import views
 urlpatterns = [
     path('api/home',
          views.HomeListView.as_view({'get': 'list'}), name='home_api'),
+    path('api/category/', views.CategoryListView.as_view(),
+         name='category_post_api'),
     path('api/<slug:category_slug>/',
          views.MidCategoryListView.as_view(), name='mid_category_api'),
     path('api/<slug:category_slug>/<slug:mid_category_slug>/',

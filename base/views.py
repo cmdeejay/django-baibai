@@ -36,8 +36,13 @@ class HomeListView(viewsets.ViewSet):
         except:
             raise Http404
 
+class CategoryListView(generics.ListCreateAPIView):
+    serializer_class = CategorySerilizer
 
-class MidCategoryListView(generics.ListAPIView):
+    def get_queryset(self):
+        return Categories.objects.all()
+
+class MidCategoryListView(generics.ListCreateAPIView):
     serializer_class = MidCategorySerilizer
 
     def get_queryset(self):
