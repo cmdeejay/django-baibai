@@ -5,8 +5,20 @@ from rest_framework import generics, viewsets
 from rest_framework.response import Response
 from .serializers import *
 from collections import namedtuple
+from rest_framework.permissions import DjangoModelPermissions, SAFE_METHODS, BasePermission, IsAdminUser
 # Create your views here.
 Home = namedtuple('Home', ('category', 'mid_category', 'product'))
+
+
+class ProductUserPermission(BasePermission):
+    message = 'Editing posts is restricted to the author only.'
+
+    def has_object_permission(self, request, view, obj):
+
+        if request.method in SAFE_METHODS:
+            return True
+
+        return obj.author == request.user
 
 
 class ProductListView(generics.ListAPIView):
@@ -36,11 +48,13 @@ class HomeListView(viewsets.ViewSet):
         except:
             raise Http404
 
+
 class CategoryListView(generics.ListCreateAPIView):
     serializer_class = CategorySerilizer
 
     def get_queryset(self):
         return Categories.objects.all()
+
 
 class MidCategoryListView(generics.ListCreateAPIView):
     serializer_class = MidCategorySerilizer
@@ -78,8 +92,10 @@ class ModelNumberListView(generics.ListAPIView):
             raise Http404
 
 
-class ProductsView(generics.ListAPIView):
+class ProductsView(generics.RetrieveUpdateDestroyAPIView, ProductUserPermission):
     serializer_class = ProductSerilizer
+    permission_classes = [ProductUserPermission]
+    lookup_field = 'id'
 
     def get_queryset(self):
         try:
