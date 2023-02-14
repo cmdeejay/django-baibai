@@ -1,6 +1,5 @@
 from django.http import Http404
 from .models import *
-from django.db.models import Count
 from rest_framework import generics, viewsets
 from rest_framework.response import Response
 from .serializers import *
