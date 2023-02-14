@@ -16,20 +16,22 @@ Including another URLconf
 from django.urls import path
 from . import views
 
+app_name = 'base'
+
 urlpatterns = [
-    path('api/home',
+    path('home',
          views.HomeListView.as_view({'get': 'list'}), name='home_api'),
-    path('api/category/', views.CategoryListView.as_view(),
+    path('category/', views.CategoryListView.as_view(),
          name='category_post_api'),
-    path('api/<slug:category_slug>/',
+    path('<slug:category_slug>/',
          views.MidCategoryListView.as_view(), name='mid_category_api'),
-    path('api/<slug:category_slug>/<slug:mid_category_slug>/',
+    path('<slug:category_slug>/<slug:mid_category_slug>/',
          views.BrandListView.as_view(), name='brand_api'),
-    path('api/<slug:category_slug>/<slug:mid_category_slug>/<slug:brand_slug>/',
+    path('<slug:category_slug>/<slug:mid_category_slug>/<slug:brand_slug>/',
          views.ModelNumberListView.as_view(), name='model_number_api'),
-    path('api/<slug:category_slug>/<slug:mid_category_slug>/<slug:brand_slug>/<slug:model_number_slug>',
+    path('<slug:category_slug>/<slug:mid_category_slug>/<slug:brand_slug>/<slug:model_number_slug>',
          views.ProductListView.as_view(), name='product_list_api'),
-    path('api/<slug:category_slug>/<slug:mid_category_slug>/<slug:brand_slug>/<slug:model_number_slug>/<int:id>',
+    path('<slug:category_slug>/<slug:mid_category_slug>/<slug:brand_slug>/<slug:model_number_slug>/<int:id>',
          views.ProductsView.as_view(), name='single_product_api'),
 
 ]
